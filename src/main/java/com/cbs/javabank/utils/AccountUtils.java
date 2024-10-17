@@ -29,6 +29,16 @@ public class AccountUtils {
 
     public static final String INSUFFICIENT_BALANCE_CODE = "7";
 
+    public static final String ACCOUNT_DEBIT_SUCCESSFULL_MESSAGE = "Account Transfer Successfully";
+
+    public static final String ACCOUNT_DEBIT_SUCCESSFULL_CODE = "8";
+
+    public static final String ACCOUNT_TRANSFER_FAILED_MESSAGE = "Account Transfer Failed";
+
+    public static final String ACCOUNT_TRANSFER_FAILED_CODE = "9";
+
+
+
 
 
 

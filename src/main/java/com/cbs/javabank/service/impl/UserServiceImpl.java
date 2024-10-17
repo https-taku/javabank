@@ -224,4 +224,58 @@ public class UserServiceImpl implements UserService {
 
 
     }
+
+    @Override
+    public BankResponse transfer(TransferRequest request) {
+        //ge to debit
+        //check if account exists
+        //check if money is available
+        //debit account
+        //credit account
+        boolean isAccountExists = userRepo.existsByAccountnumber(request.getSourceaccountnumber());
+        boolean isDestinationAccountExists = userRepo.existsByAccountnumber(request.getDestinationaccountnumber());
+
+        String sourceUsername = sourceAccountuser.getFirstname() + " " +
+                sourceAccountuser.getLastname() +
+                " " + sourceAccountuser.getOthername();
+
+        if(!isAccountExists || !isDestinationAccountExists){
+            return BankResponse.builder()
+                    .responsecode(AccountUtils.ACCOUNT_TRANSFER_FAILED_CODE)
+                    .responsemessage(AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE)
+                    .accountinfo(null)
+                    .build();
+        }
+        User sourceAccountuser =  userRepo.findByAccountnumber(request.getSourceaccountnumber());
+        User destinationAccountuser =  userRepo.findByAccountnumber(request.getDestinationaccountnumber());
+        if (request.getAmount()
+                .compareTo(String.valueOf(sourceAccountuser.getAccountbalance())) <0) {
+            return BankResponse.builder()
+                    .responsecode(AccountUtils.ACCOUNT_TRANSFER_FAILED_CODE)
+                    .responsemessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+                    .accountinfo(null)
+                    .build();
+        }
+        sourceAccountuser.setAccountbalance(sourceAccountuser.getAccountbalance().subtract(new BigDecimal(request.getAmount())));
+        userRepo.save(sourceAccountuser);
+        EmailDetails DebitAlert = EmailDetails.builder()
+                .recipient(sourceAccountuser.getEmail())
+                .subject("DEBIT ALERT")
+                .message("You have successfully debited your account with the sum of " + request.getAmount() + " on " + sourceAccountuser.getAccountnumber())
+                .build();
+
+        emailService.sendEmailAlert(DebitAlert);
+
+
+
+        User destinstionaccountuser = userRepo.findByAccountnumber(request.getDestinationaccountnumber());
+        destinstionaccountuser.setAccountbalance(destinstionaccountuser.getAccountbalance().add(new BigDecimal(request.getAmount())));
+
+        EmailDetails CreditAlert = EmailDetails.builder()
+                .recipient(sourceAccountuser.getEmail())
+                .subject("DEBIT ALERT")
+                .message("You have credit debited your account with the sum of " + request.getAmount() + " on " + sourceAccountuser.getAccountnumber())
+                .build();
+
+        emailService.sendEmailAlert(CreditAlert);
 }
