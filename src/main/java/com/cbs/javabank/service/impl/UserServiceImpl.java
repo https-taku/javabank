@@ -235,9 +235,7 @@ public class UserServiceImpl implements UserService {
         boolean isAccountExists = userRepo.existsByAccountnumber(request.getSourceaccountnumber());
         boolean isDestinationAccountExists = userRepo.existsByAccountnumber(request.getDestinationaccountnumber());
 
-        String sourceUsername = sourceAccountuser.getFirstname() + " " +
-                sourceAccountuser.getLastname() +
-                " " + sourceAccountuser.getOthername();
+
 
         if(!isAccountExists || !isDestinationAccountExists){
             return BankResponse.builder()
@@ -256,11 +254,18 @@ public class UserServiceImpl implements UserService {
                     .accountinfo(null)
                     .build();
         }
+
+
         sourceAccountuser.setAccountbalance(sourceAccountuser.getAccountbalance().subtract(new BigDecimal(request.getAmount())));
+        String sourceUsername = sourceAccountuser.getFirstname() + " " +
+                sourceAccountuser.getLastname();
+
+        String recipientUsername = destinationAccountuser.getFirstname() + " " +
+                destinationAccountuser.getLastname();
         userRepo.save(sourceAccountuser);
         EmailDetails DebitAlert = EmailDetails.builder()
                 .recipient(sourceAccountuser.getEmail())
-                .subject("DEBIT ALERT")
+                .subject(" SUCCESSFUL DEBIT ALERT - you sent money")
                 .message("You have successfully debited your account with the sum of " + request.getAmount() + " on " + sourceAccountuser.getAccountnumber())
                 .build();
 
@@ -273,9 +278,10 @@ public class UserServiceImpl implements UserService {
 
         EmailDetails CreditAlert = EmailDetails.builder()
                 .recipient(sourceAccountuser.getEmail())
-                .subject("DEBIT ALERT")
-                .message("You have credit debited your account with the sum of " + request.getAmount() + " on " + sourceAccountuser.getAccountnumber())
+                .subject("CREDIT ALERT - you have received money")
+                .message("You have credited your account with the sum of " + request.getAmount() + " on " + sourceAccountuser.getAccountnumber())
                 .build();
 
         emailService.sendEmailAlert(CreditAlert);
+}
 }
